@@ -21,7 +21,8 @@ module TFLog::Parsers
           .+\Z
         )
       }x do |m|
-        set :time => DateTime.strptime(m.datetime, time_format).to_time.utc
+        set :time => DateTime.strptime(m.datetime, time_format).to_time.utc,
+            :data => m.data
       end
     end
   end

@@ -24,7 +24,7 @@ module TFLog
         # This means that the log is a path to the file.  We'll try to open it.
         raise FileError unless @log = File.open(log, "r")
       else
-        if log.respond_to?(:gets) and log.respond_to?(:lines)
+        if log.respond_to?(:lines)
           @log = log
         else
           raise FileError
@@ -32,26 +32,33 @@ module TFLog
       end
     end
 
-    # Get the log's lines.
+    # This class is the enumerator, so you'd want this class.  If you want
+    # direct access to the lines set, try #to_set.  This is just here to
+    # pretty things up; `log.lines.first` looks better than `log.first`.
     def lines
+      self
+    end
+
+    # Give the lines as a set.
+    def to_set
       @lines ||= load_from_file
     end
 
-    # Turn the log into a set.
-    def to_set
-      lines
-    end
-
     # Enumerate over the lines.
-    def_delegator :lines, :each
+    def_delegator :to_set, :each
+
+    def inspect
+      path = @log.path rescue ""
+      "#<TFLog::Log #{path}>"
+    end
 
     private
 
     def load_from_file
-      lines = Set.new
+      lines = SortedSet.new
       
-      log.lines.each do |line|
-        Line.new(line, self)
+      @log.lines.each_with_index do |line, number|
+        lines << Line.new(line, number, options)
       end
 
       lines

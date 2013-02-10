@@ -4,8 +4,9 @@ module TFLog
     attr_accessor :line
     attr_accessor :options
     
-    def initialize(line, options)
+    def initialize(line, number, options)
       @line = line
+      @number = number
       @options = options
     end
 
@@ -15,6 +16,18 @@ module TFLog
 
     def [](name)
       data[name]
+    end
+
+    def <=>(other)
+      if other.is_a? Line
+        self.number <=> other.number
+      else
+        self.number <=> other
+      end
+    end
+
+    def inspect
+      @line.inspect
     end
 
     private
