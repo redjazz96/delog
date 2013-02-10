@@ -20,7 +20,7 @@ class MyParser < TFLog::LineParser
             stop
         end
         
-        on %{\AL} do
+        on %r{\AL} do
         	set :type => :log
         end
         
