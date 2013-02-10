@@ -9,7 +9,7 @@ module TFLog
     
 
     DEFAULT_OPTIONS = {
-      :lazy_load => true
+      :parser => TFLog::Parsers::Basic
     }
 
     attr_accessor :options

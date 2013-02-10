@@ -8,7 +8,9 @@ module TFLog::Parsers
         stop
       end
 
-      line_regex = /
+      time_format = "%m/%d/%Y - %H:%M:%S"
+
+      on %r{
         \AL\s # I'm not sure why, but the line has to start with an L
               # from what I've seen.
         (?<datetime>
@@ -18,11 +20,7 @@ module TFLog::Parsers
         (?<data>
           .+\Z
         )
-      /x
-
-      time_format = "%m/%d/%Y - %H:%M:%S"
-
-      on line_regex do |m|
+      }x do |m|
         set :time => DateTime.strptime(m.datetime, time_format).to_time.utc
       end
     end

@@ -17,6 +17,7 @@ module TFLog
 
     # Parse the line.
     def parse!
+      set :line => @line
       instance_exec(&self.class.get_parsable)
       self
     end
