@@ -35,12 +35,21 @@ class MyParser < TFLog::LineParser
     end
     
     set :hello => :world, :foo => :bar
-    get(:hello) # => :world
+    get(:hello)  # => :world
+    do_something # This calls the method we defined below.  Cool, eh?  This
+                 # means we can extract `on` calls to another method,
+                 # cleaning it up; or, you could set it up for another (child)
+                 # class to use.
+
+    get(:parsetime) # => about Time.now.utc
     
     stop # Completely optional.  This means that `on` blocks are ignored,
-       # and `set` calls are ignored.  This basically means that the line
-       # is done.
+         # and `set` calls are ignored.
     stopped? # => true
+  end
+
+  def do_something
+    set :parsetime => Time.now.utc
   end
 end
 ```
