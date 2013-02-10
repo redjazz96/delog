@@ -1,5 +1,3 @@
-require 'forwardable'
-
 module TFLog
 
   # This is the log.  You use `Log.new(log)` to create a new log, and #each
