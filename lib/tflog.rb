@@ -14,3 +14,5 @@ require 'tflog/version'
 module TFLog
 
 end
+
+Tflog = TFLog

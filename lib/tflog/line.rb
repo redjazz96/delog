@@ -3,6 +3,7 @@ module TFLog
 
     attr_accessor :line
     attr_accessor :options
+    attr_accessor :number
     
     def initialize(line, number, options)
       @line = line
@@ -18,12 +19,26 @@ module TFLog
       data[name]
     end
 
+    # comparison methods
+
     def <=>(other)
-      if other.is_a? Line
-        self.number <=> other.number
-      else
-        self.number <=> other
+      if other.is_a? self.class
+        self.number - other.number
+      elsif other
+        self.number - other
       end
+    end
+
+    def <(other)
+      (self <=> other) < 0
+    end
+
+    def >(other)
+      (self <=> other) > 0
+    end
+
+    def eq(other)
+      (self <=> other) == 0
     end
 
     def inspect

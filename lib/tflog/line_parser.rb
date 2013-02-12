@@ -34,13 +34,33 @@ module TFLog
 
     # FOR PARSING
 
-    # When the line matches +match+, it'll yield.  Does nothing if the line was
-    # ended.
-    def on(match, to = @line)
+    # Can accept a Hash or a regular expression.  If it's a regular expression,
+    # it matches to the line (and if it does match, it yields).  If it's a hash,
+    # it'll match the first key-value pair; if they match, it'll yield, or if no
+    # block is given, #set the reset of the key-value pairs of the hash.  If
+    # `stop` is the key and `true` is the value, it calls #stop.
+    #
+    #   on %r{\A\*} => line, :type => :comment, :stop => true
+    def on(match)
       return if stopped?
 
-      if m = to.match(match)
-        yield MethodAccessor.new(m)
+      unless match.is_a? Hash
+        match = { match => @line }
+      end
+
+      match = match.to_a
+      condition = match.shift
+
+      if m = condition[1].match(condition[0])
+        match_data = MethodAccessor.new(m)
+        if block_given?
+          yield match_data
+        else
+          match.each do |k, v|
+            next stop if k == :stop and v
+            set k, format(v, match_data)
+          end
+        end
       end
     end
 
@@ -78,6 +98,29 @@ module TFLog
     def line
       @line
     end
+
+    # Tell #on that we want the value from the match to be replaced here.  Give
+    # it the #d!
+    def d(name)
+      DataAccessor.new(name)
+    end
+
+    def format(value, match)
+      return value unless value.is_a? DataAccessor
+      return match.get value.name
+    end
+
+    def method_missing(method, *args)
+      super if args.length > 1 or block_given?
+      if args.length == 0
+        get method
+      else
+        set method, args[0]
+      end
+    end
+
+
+    class DataAccessor < Struct.new(:name); end
 
   end
 end
