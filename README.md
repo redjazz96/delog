@@ -1,4 +1,7 @@
-# TFLog
+# TFLog 
+
+[![Build Status](https://travis-ci.org/redjazz96/tflog.png?branch=master)](https://travis-ci.org/redjazz96/tflog)
+
 `TFLog` is a Team Fortress 2 log file library.  It takes Team Fortress 2 logs and provides an interface to the contents of the file, giving information about each line along the way.  Have some code examples:
 
 ```Ruby
@@ -43,6 +46,8 @@ You can also define your own parsers for the log files:
           stop
         end
 
+        # _PLEASE_ note that the position of :stop => true in the hash matters.
+        # Any key-value pairs after :stop => true are ignored.
         on %r{\AW}, :type => :warning, :stop => true
 
         # This one matches it to something other than the actual line.  This can
