@@ -1,8 +1,8 @@
-class TestParser < TFLog::LineParser
+class TestParser < Delog::LineParser
 
   build do
     # This is a line comment.  We can ignore this.
-    on /\A\*/ do
+    on %r{\A\*} do
       type :comment
       stop
     end

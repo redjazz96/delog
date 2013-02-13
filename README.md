@@ -1,13 +1,13 @@
-# TFLog 
+# Delog 
 
-[![Build Status](https://travis-ci.org/redjazz96/tflog.png?branch=master)](https://travis-ci.org/redjazz96/tflog)
+[![Build Status](https://travis-ci.org/redjazz96/tflog.png?branch=master)](https://travis-ci.org/redjazz96/tflog) [![Code Climate](https://codeclimate.com/github/redjazz96/tflog.png)](https://codeclimate.com/github/redjazz96/tflog)
 
-`TFLog` is a Team Fortress 2 log file library.  It takes Team Fortress 2 logs and provides an interface to the contents of the file, giving information about each line along the way.  Have some code examples:
+`Delog` is a log file library.  It takes generic load files and using defined parser rules creates a reconstruction of the log in an accessible manner.  Have some code examples:
 
 ```Ruby
-log = TFLog::Log.new("path/to/logfile") # or, TFLog::Log.new(some_io_object)
+log = Delog::Log.new("path/to/logfile") # or, Delog::Log.new(some_io_object)
 log.lines.each do |line|
-  line.class # => TFLog::Line
+  line.class # => Delog::Line
 end
 
 log.lines.first.type # => :comment (or some other value)
@@ -17,7 +17,7 @@ You can also define your own parsers for the log files:
 
 ```Ruby
 
-    class MyParser < TFLog::LineParser
+    class MyParser < Delog::LineParser
       build do
         on %r{\A\*} do
           set :type => :comment
@@ -74,7 +74,7 @@ You can also define your own parsers for the log files:
       end
     end
 
-    log = TFLog::Log.new("path/to/log", :parser => MyParser)
+    log = Delog::Log.new("path/to/log", :parser => MyParser)
     # assuming the first line is `* this is a comment`
     log.lines.first.type # => :comment
     log.lines.first.parsetime # => nil (`set` in do_something did nothing!)

@@ -1,7 +1,7 @@
-describe TFLog::Log do
+describe Delog::Log do
     
   before :each do
-    @log = TFLog::Log.new("spec/test.log")
+    @log = Delog::Log.new("spec/test.log")
   end
 
   it "should load the file" do

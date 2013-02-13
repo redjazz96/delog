@@ -1,9 +1,9 @@
 require 'test_parser'
 
-describe Tflog::Line do
+describe Delog::Line do
   
   before :each do
-    @lines = Tflog::Log.new("spec/test.log").to_a    
+    @lines = Delog::Log.new("spec/test.log").to_a    
   end
 
   # Notice how the second line is dated one second earlier than the first line.

@@ -1,4 +1,4 @@
-describe Tflog::MethodAccessor do
+describe Delog::MethodAccessor do
   before :each do
     @accessor = described_class.new(:hello => "world", :foo => "bar")
   end
@@ -21,5 +21,10 @@ describe Tflog::MethodAccessor do
 
   it "should return nil on empty attribute" do
     @accessor.empty_attribute.should be nil
+  end
+
+  it "should return right values for has_key?" do
+    @accessor.has_key?(:hello).should be true
+    @accessor.has_key?(:key).should   be false
   end
 end

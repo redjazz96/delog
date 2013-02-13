@@ -1,6 +1,6 @@
 require 'test_parser'
 
-describe Tflog::LineParser do
+describe Delog::LineParser do
 
   before do
     @parser_class = TestParser

@@ -1,4 +1,4 @@
-module TFLog
+module Delog
 
   # This is the log.  You use `Log.new(log)` to create a new log, and #each
   # should give you each line of the log (a Line class).
@@ -7,11 +7,14 @@ module TFLog
     extend Forwardable
     include Enumerable
     
-
+    # The default options that are merged with the user options, as in if the
+    # user didn't define it, it's set to the default.
     DEFAULT_OPTIONS = {
-      :parser => TFLog::Parsers::Basic
+      :parser => Parsers::Basic
     }
 
+    # The options, as passed by the user.  Is a hash, and is not frozen.  Not
+    # used until the line set is created.
     attr_accessor :options
     attr_accessor :log
 
@@ -44,9 +47,19 @@ module TFLog
       @lines ||= load_from_file
     end
 
-    # Enumerate over the lines.
+    # Refresh the line set.  This may be caused by a new modification to the
+    # file.
+    def refresh!
+      @lines = load_from_file
+    end
+
+    # Enumerate over the lines.  This uses a handy thing with def_delegator that
+    # makes it call #to_set in order for it to delegate it to something; this
+    # allows us to perform the lazy loading of the lines without doing some
+    # funky things.
     def_delegator :to_set, :each
 
+    # Pretty inspect.
     def inspect
       path = @log.path rescue ""
       "#<TFLog::Log #{path}>"
@@ -54,6 +67,10 @@ module TFLog
 
     private
 
+    # Load the lines from the file.  The lines are put in a SortedSet.  Each
+    # line in the Set is an instance of Line; luckily, Line performs lazy
+    # loading of itself so parsing every line does not occur in this method
+    # (just the reading of the file into memory).
     def load_from_file
       lines = SortedSet.new
       

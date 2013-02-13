@@ -1,5 +1,5 @@
-module TFLog::Parsers
-  class Basic < TFLog::LineParser
+module Delog::Parsers
+  class Basic < Delog::LineParser
 
     build do
 
