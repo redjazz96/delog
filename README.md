@@ -34,13 +34,28 @@ You can also define your own parsers for the log files:
         }x do |m|
           set :time => m.datetime
         end
+
+        # These two `on` calls do exactly the same thing.  I call the second one
+        # "shorthand."  the `:stop => true` is the same as calling #stop, while
+        # any other key-value pair is sent to #set.
+        on %r{\AW} do
+          set :type => :warning
+          stop
+        end
+
+        on %r{\AW}, :type => :warning, :stop => true
+
+        # This one matches it to something other than the actual line.  This can
+        # be anything that responds to #match, but it's normally a string 
+        # anyway.
+        on %r{\AW} => something_predefined, :do => :something
         
         set :hello => :world, :foo => :bar
         get(:hello)  # => :world
         do_something # This calls the method we defined below.  Cool, eh?  This
                      # means we can extract `on` calls to another method,
-                     # cleaning it up; or, you could set it up for another (child)
-                     # class to use.
+                     # cleaning it up; or, you could set it up for another 
+                     # (child) class to use.
 
         get(:parsetime) # => about Time.now.utc
         

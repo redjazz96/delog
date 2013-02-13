@@ -2,7 +2,7 @@ class TestParser < TFLog::LineParser
 
   build do
     # This is a line comment.  We can ignore this.
-    on %r{\A\*} do
+    on /\A\*/ do
       type :comment
       stop
     end

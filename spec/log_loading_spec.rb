@@ -5,7 +5,7 @@ describe TFLog::Log do
   end
 
   it "should load the file" do
-    @log.lines.first[:data].should eq "server_cvar: \"mp_winlimit\" \"4\""
+    @log.lines.first.log.should eq "server_cvar: \"mp_winlimit\" \"4\""
   end
 
   it "should yield in order" do

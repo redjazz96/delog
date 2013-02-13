@@ -41,22 +41,29 @@ module TFLog
     # `stop` is the key and `true` is the value, it calls #stop.
     #
     #   on %r{\A\*} => line, :type => :comment, :stop => true
-    def on(match)
+    def on(match, data = nil)
       return if stopped?
-
-      unless match.is_a? Hash
-        match = { match => @line }
+      
+      if data.is_a? Hash
+        pairs = [[ match, @line ]] + data.to_a
+      else
+        # we're assuming that data is nil.
+        if match.is_a? Hash
+          pairs = match.to_a
+        else
+          pairs = [[ match, @line ]]
+        end
       end
 
-      match = match.to_a
-      condition = match.shift
+      pairs = pairs.to_a
+      condition = pairs.shift
 
       if m = condition[1].match(condition[0])
         match_data = MethodAccessor.new(m)
         if block_given?
           yield match_data
         else
-          match.each do |k, v|
+          pairs.each do |k, v|
             next stop if k == :stop and v
             set k, format(v, match_data)
           end
