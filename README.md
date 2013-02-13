@@ -1,6 +1,6 @@
 # Delog 
 
-[![Build Status](https://travis-ci.org/redjazz96/tflog.png?branch=master)](https://travis-ci.org/redjazz96/tflog) [![Code Climate](https://codeclimate.com/github/redjazz96/tflog.png)](https://codeclimate.com/github/redjazz96/tflog)
+[![Build Status](https://travis-ci.org/redjazz96/delog.png?branch=master)](https://travis-ci.org/redjazz96/delog) [![Code Climate](https://codeclimate.com/github/redjazz96/delog.png)](https://codeclimate.com/github/redjazz96/delog)
 
 `Delog` is a log file library.  It takes generic load files and using defined parser rules creates a reconstruction of the log in an accessible manner.  Have some code examples:
 
