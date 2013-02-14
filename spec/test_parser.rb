@@ -27,6 +27,16 @@ class TestParser < Delog::LineParser
           :data => m.data
     end
 
+    on %r{\AB (?<foo>.*?)\n}, :test_method
+
+    on %r{\AW (?<foo>.*?)\n} do
+      whitelisted_method
+    end
+
+    on %r{\ANW (?<foo>.*?)\n} do
+      not_whitelisted_method
+    end
+
     on %r{\Aserver_cvar\: "(?<cvar>.*)" "(?<value>.*)"\z} => get(:data), 
       :type => :cvar_set, :cvar => d(:cvar), :value => d(:value)
 
@@ -34,6 +44,26 @@ class TestParser < Delog::LineParser
 
     on %r{\Amatch: (?<md>.*?)\z} => get(:data), :m => d(:md), :stop => true
 
+    on %r{\Anil\n} do
+      set :something => nil
+      something
+    end
+
     set :didnt_stop => true
   end
+
+  def test_method(m)
+    set :hello => :world
+    m.foo.should == "bar"
+  end
+
+  def whitelisted_method
+    true.should == true
+  end
+
+  def not_whitelisted_method
+    false.should == true
+  end
+
+  def_whitelist :test_method, :whitelisted_method
 end

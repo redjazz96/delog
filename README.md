@@ -54,6 +54,13 @@ You can also define your own parsers for the log files:
         # be anything that responds to #match, but it's normally a string 
         # anyway.
         on %r{\AW} => something_predefined, :do => :something
+
+        # Here, if you've previously set :log to have a value, you can use it
+        # in a match.  But if you're not careful, you can accidentally cause
+        # name errors because +log+ isn't (and hasn't) been defined.  So use
+        # +get(:log)+ unless you're absolutely sure that +log+ always has a
+        # value.
+        on %r{\AW (?<something>.*?)} => log, :thing => d(:something)
         
         set :hello => :world, :foo => :bar
         get(:hello)  # => :world
@@ -61,6 +68,9 @@ You can also define your own parsers for the log files:
                      # means we can extract `on` calls to another method,
                      # cleaning it up; or, you could set it up for another 
                      # (child) class to use.
+
+        # This calls the method #on_match defined below, outside of the block.
+        on %r{someone: (?<somebody>.*?);}, :on_match
 
         get(:parsetime) # => about Time.now.utc
         
@@ -72,6 +82,14 @@ You can also define your own parsers for the log files:
       def do_something
         set :parsetime => Time.now.utc
       end
+
+      def on_match(match)
+        set :something => match.somebody
+      end
+
+      # You have to add your methods to the whitelist that way only some methods
+      # are exposed to the parser.  This helps keep the namespace clean.
+      def_whitelist :do_something, :on_match
     end
 
     log = Delog::Log.new("path/to/log", :parser => MyParser)

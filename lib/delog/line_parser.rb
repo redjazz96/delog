@@ -1,3 +1,6 @@
+require 'delog/line_parser/context'
+require 'delog/line_parser/behaviour'
+
 module Delog
 
   # This parses a line given to it.  *This should only be used as the parent of
@@ -5,151 +8,105 @@ module Delog
   # Parsers module for parses for the line.
   class LineParser
 
-    # The data taken out of the line.  This is a Hash.
-    attr_reader :data
+    include Behaviour
 
     # The options, as passed to by Line.  The options are frozen by Line, so
     # don't try modifying them!  They're provided in this class so that parsers
     # can change behaviour based on these options, which are completely user
     # defined.
     attr_reader :options
+
+    # The context the parser will run under.  This should be a Context.
+    attr_reader :context
     
     # Initialize the class.
     def initialize(line, options = {})
       @line = line
-      @data = {}
-      @stopped = false
+      @context = Context.new
+      setup_context
+      super()
     end
 
     # Parse the line.  Uses ::get_parsable, which is called in the context of
     # the instance of the class.  Returns the instance of the class.
     def parse!
       set :line => @line
-      instance_exec(&self.class.get_parsable)
+      @context.run(&self.class.get_parsable)
       self
-    end
-
-    # A convinence method for subclasses to put their parsing logic in.  This is
-    # called with a block, which is then used for parsing (see below for valid
-    # method calls).
-    def self.build(&block)
-      @block = block
-    end
-
-    # Get the block that was given by the subclass.  If the block isn't defined,
-    # an empty block is set and returned.
-    def self.get_parsable
-      @block ||= Block.new
-    end
-
-    # FOR PARSING
-
-    # Can accept a Hash or a regular expression.  If it's a regular expression,
-    # it matches to the line (and if it does match, it yields).  If it's a hash,
-    # it'll match the first key-value pair; if they match, it'll yield, or if no
-    # block is given, #set the reset of the key-value pairs of the hash.  If
-    # `stop` is the key and `true` is the value, it calls #stop.
-    #
-    #   on %r{\A\*} => line, :type => :comment, :stop => true
-    def on(match, data = nil, &block)
-      return if stopped?
-      
-      if data.is_a? Hash
-        pairs = data.to_a.unshift [ match, @line ]
-      else
-        # we're assuming that data is nil.
-        if match.is_a? Hash
-          pairs = match.to_a
-        else
-          pairs = [[ match, @line ]]
-        end
-      end
-
-      regex, against = pairs.shift
-
-      if matched = regex.match(against)
-        match_data = MethodAccessor.from_match_data(matched)
-        _handle_match match_data, pairs, &block
-      end
-    end
-
-    # Sets a key-value pair in the tree.  Can accept a hash as the first
-    # parameter, or can accept a +name+ key and a +value+ value.
-    def set(name, value = nil)
-      return if stopped?
-
-      if value and not name.is_a? Hash
-        name = { name => value }
-      end
-
-      data.merge! name
-    end
-
-    # Gets a value from a given key.  A convience method for data[name].
-    def get(name)
-      data[name]
-    end
-
-    alias :[] :get
-
-    # End the parsing; the line is finished- no more data can be taken from
-    # the line.
-    def stop
-      @stopped = true
-    end
-
-    # If the line has reached the end.
-    def stopped?
-      @stopped
-    end
-
-    # Gives the line.
-    def line
-      @line
-    end
-
-    # Tell #on that we want the value from the match to be replaced here.  Give
-    # it the #d!
-    def d(name)
-      DataAccessor.new(name)
-    end
-
-    # An easier way to say +get(:key)+ or +set(:key, :value)+ is this; instead,
-    # they would be +key+ and +key :value+ respectively.  The latter is the case
-    # because an equal sign would denote that +key+ is a local variable.
-    def method_missing(method, *args)
-      super if args.length > 1 or block_given?
-      if args.length == 0
-        get method
-      else
-        set method, args[0]
-      end
     end
 
     private
 
     # Handles the match of a line; +match_data+ should be a MethodAccessor, and
-    # +pairs+ should be an array of arrays.  The second dimension arrays should
-    # contain two elements: the key, and the value, in that order.
-    def _handle_match(match_data, pairs)
-      if block_given?
-        yield match_data
+    # +pairs+ should be a hash.  If the hash has a key :stop, and the value is
+    # trueish, it'll call #stop.  Otherwise, it'll set the key as the value,
+    # first calling #format on the value.
+    def handle_match(match_data, pairs, block = nil)
+      if block
+        #block.call match_data, context.current_klass
+        context.run_with_current match_data, &block
       else
         pairs.each do |k, v|
           next stop if k == :stop and v
-          set k, _format(v, match_data)
+          set k, format(v, match_data)
         end
       end
     end
 
     # Returns +value+ unless it's a DataAccessor.  If it is, though, it
     # returns the value for the data (or nil, if it doesn't exist).
-    def _format(value, match)
+    def format(value, match)
       return value unless value.is_a? DataAccessor
       return match.get value.name
     end
 
+    # Adds the whitelisted methods to the context.  Calls #add_method on the
+    # context, adding a user-defined whitelist with a list of methods for this
+    # class.  Check out ::def_whitelist or ::get_whitelist
+    def setup_context
+      context_methods.each do |m|
+        @context.add_method m, self
+      end
+    end
 
+    # Adds some local methods to the context methods.
+    def context_methods
+      super + [:context]
+    end
+
+    # This normalizes the #on variables.  It'll return a hash, with the keys:
+    # <tt>:match</tt> :: this is an array; the first element is the actual
+    #   matching element, the second element is what it's matched to.
+    # <tt>:data</tt>  :: this is a hash that contains data for handle_match.
+    #   It can be empty.
+    # <tt>:block</tt> :: this is the block that should be called for #on.  It
+    #   may or may not exist.
+    def normalize_params(match, data, block)
+      rvalue = { :match => nil, :data => {}, :block => block }
+
+      if data.is_a? Hash
+        rvalue[:match] = [match, @line]
+        rvalue[:data] = data
+      elsif data.is_a? Symbol and not block_given?
+        rvalue[:block] = context.current_klass.method(data)
+      end
+
+      unless rvalue[:match]
+        # we're assuming that data is nil.
+        if match.is_a? Hash
+          rvalue[:match] = [match.keys[0], match.values[0]]
+          match.delete match.keys[0]
+          rvalue[:data] = match
+        else
+          rvalue[:match] = [ match, @line ]
+        end
+      end
+
+      rvalue
+    end
+
+    # This is used to represent a matchdata value.  This is mainly used for the
+    # short hand <tt>on /regex/, :something => d(:somedata)</tt>.
     class DataAccessor < Struct.new(:name); end
 
   end

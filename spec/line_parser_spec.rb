@@ -40,4 +40,30 @@ describe Delog::LineParser do
     parser[:m].should == "foo bar"
   end
 
+  # this is for `on /regexp/, :some_method` syntax
+  it "should use a method when using a symbol" do
+    line = "B bar\n"
+    parser = @parser_class.new(line).parse!
+
+    parser[:hello].should be :world
+  end
+
+  it "should be able to call a whitelisted method" do
+    line = "W bar\n"
+    parser = @parser_class.new(line).parse!
+  end
+
+  it "should not be able to call a nonwhitelisted method" do
+    line = "NW bar\n"
+    expect {
+      @parser_class.new(line).parse!
+    }.to raise_error NameError
+  end
+
+  it "should not raise when data has nil value" do
+    line = "nil\n"
+    parser = @parser_class.new(line).parse!
+    parser.data[:something].should be nil
+  end
+
 end

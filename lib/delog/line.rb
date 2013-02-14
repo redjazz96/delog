@@ -94,7 +94,6 @@ module Delog
       parser.data
     end
 
-
   end
 
   # An error when something attempted to modify something that shouldn't be
