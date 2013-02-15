@@ -95,7 +95,7 @@ You can also define your own parsers for the log files:
     log = Delog::Log.new("path/to/log", :parser => MyParser)
     # assuming the first line is `* this is a comment`
     log.lines.first.type # => :comment
-    log.lines.first.parsetime # => nil (`set` in do_something did nothing!)
+    log.lines.first[:parsetime] # => nil (`set` in do_something did nothing!)
 
     log.lines.map do |line|
       line.parsetime.class
