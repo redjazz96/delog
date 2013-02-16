@@ -10,7 +10,7 @@ module Delog
     # The default options that are merged with the user options, as in if the
     # user didn't define it, it's set to the default.
     DEFAULT_OPTIONS = {
-      :parser => Parsers::Basic
+      :parser => Parsers::Empty
     }
 
     # The options, as passed by the user.  Is a hash, and is not frozen.  Not
@@ -21,7 +21,7 @@ module Delog
     # This initializes the log.  It can accept a string and will use that as the
     # path to the file, or it can take any object that can respond to #lines.
     def initialize(log, options = {})
-      @options = options.dup.merge DEFAULT_OPTIONS
+      @options = DEFAULT_OPTIONS.dup.merge options
 
       if log.is_a? String
         # This means that the log is a path to the file.  We'll try to open it.

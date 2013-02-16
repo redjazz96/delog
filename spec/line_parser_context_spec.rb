@@ -27,23 +27,11 @@ describe Delog::LineParser::Context do
     end
   end
 
-  it "should include a module" do
-    @context.run_with TestInclude do
-      some_method.should == "foobar"
-    end
-  end
-
   it "can raise errors" do
     expect {
       @context.run do
         raise StandardError
       end
     }.to raise_error StandardError
-  end
-end
-
-module TestInclude
-  def some_method
-    "foobar"
   end
 end

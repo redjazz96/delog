@@ -33,7 +33,7 @@ describe Delog::LineParser do
   end
 
   it "stops in shorthand" do
-    line = "L 02/09/2013 - 01:19:03: match: foo bar\n"
+    line = "STOP foo bar\n"
     parser = @parser_class.new(line).parse!
 
     parser[:didnt_stop].should be false

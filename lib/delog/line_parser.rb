@@ -1,5 +1,6 @@
-require 'delog/line_parser/context'
+require 'delog/line_parser/addin'
 require 'delog/line_parser/behaviour'
+require 'delog/line_parser/context'
 
 module Delog
 
@@ -18,11 +19,16 @@ module Delog
 
     # The context the parser will run under.  This should be a Context.
     attr_reader :context
+
+    # The included modules.  This is kept track of so that whenever a module is
+    # included multiple times, only build is handled more than once.
+    attr_reader :addins
     
     # Initialize the class.
     def initialize(line, options = {})
-      @line = line
+      @line    = line
       @context = Context.new
+      @addins  = get_addins
       setup_context
       super()
     end
@@ -31,7 +37,14 @@ module Delog
     # the instance of the class.  Returns the instance of the class.
     def parse!
       set :line => @line
-      @context.run(&self.class.get_parsable)
+      @context.run_with_current(&self.class.get_parsable)
+      self
+    end
+
+    # Add the addins to the context.  This is out here just in case we don't
+    # really want to add the addins.
+    def handle_addins
+      add_addins_to_context
       self
     end
 
@@ -43,7 +56,6 @@ module Delog
     # first calling #format on the value.
     def handle_match(match_data, pairs, block = nil)
       if block
-        #block.call match_data, context.current_klass
         context.run_with_current match_data, &block
       else
         pairs.each do |k, v|
@@ -62,11 +74,50 @@ module Delog
 
     # Adds the whitelisted methods to the context.  Calls #add_method on the
     # context, adding a user-defined whitelist with a list of methods for this
-    # class.  Check out ::def_whitelist or ::get_whitelist
+    # class.  Check out ::def_whitelist or ::get_whitelist.
     def setup_context
       context_methods.each do |m|
         @context.add_method m, self
       end
+
+      @context.define_klass
+    end
+
+    # Adds the addins to the context.  Uses #setup_addins to grab data from the
+    # addins and then adds the methods to the context and calls the builds in
+    # the context to add them.
+    def add_addins_to_context
+      addin_data = setup_addins addins
+
+      addin_data[:methods].each do |method|
+        @context.add_method method[:name], method[:receiver]
+      end
+
+      @context.define_klass
+
+      addin_data[:builds].each do |build|
+        @context.run_with_current(&build)
+      end
+    end
+
+    # Sets up the addins passed to the method.  Returns a hash like this:
+    #
+    #   <tt>:methods</tt> :: the methods to be defined in the context.  It's an
+    #     array of hashes, where the hashes have the keys +:receiver+ and
+    #     +:name+.
+    #   <tt>:builds</tt>  :: the blocks to be executed for the addins.  It's an
+    #     array.
+    def setup_addins(addins)
+      result = { :methods => [], :builds => [] }
+      addins.each do |addin|
+        result[:methods].concat(addin.whitelist.map do |m|
+          { :receiver => addin.addin, :name => m }
+        end)
+
+        result[:builds] << addin.build
+      end
+
+      result
     end
 
     # Adds some local methods to the context methods.

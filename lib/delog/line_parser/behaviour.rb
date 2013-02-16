@@ -24,6 +24,21 @@ module Delog
         def get_whitelist
           @whitelist ||= []
         end
+
+        # Add an addin to the current parser.  This needs to be defined here so
+        # that the whitelist can be built (because we can't add methods
+        # dynamically to the context that well!).
+        def addin(*ads)
+          ads.each do |ad|
+            addins << Addin.new(ad)
+          end
+        end
+
+        # Returns all of the addins that the parser requested.  Every element
+        # should be an Addin instance.
+        def addins
+          @addins ||= []
+        end
       end
       
       module InstanceMethods
@@ -34,6 +49,17 @@ module Delog
         def initialize
           @data = {}
           @stopped = false
+        end
+
+        # Grabs the addins from the class.
+        def get_addins
+          self.class.addins
+        end
+
+
+        # Grabs the whitelist from the class.
+        def get_whitelist
+          self.class.get_whitelist
         end
 
         # Can accept a Hash or a regular expression.  If it's a regular 
@@ -119,6 +145,11 @@ module Delog
           end
         end
 
+        def respond_to_missing?(method, include_private)
+          return super if block_given?
+          true
+        end
+
         private
 
         # Handles the match of a line; +match_data+ should be a MethodAccessor, 
@@ -178,7 +209,7 @@ module Delog
 
         # This returns an array of methods for #setup_context.
         def context_methods
-          self.class.get_whitelist + [
+          get_whitelist + [
             :on, :set, :get, :stop, :stopped?, :method_missing, :data, :d
           ]
         end

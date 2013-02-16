@@ -14,6 +14,7 @@ module Delog
       # Initialize the class.
       def initialize
         @methods_available = {}
+        @old_methods = []
       end
 
       # Add a method to the context.  Accepts a block.  Invalidates the current
@@ -30,29 +31,36 @@ module Delog
         invalidate_klass
       end
 
-      # Grabs the defiend class from #defined_klass, and adds the includes from
-      # the arguments (which requires an invalidation of the klass).  It then
-      # instantizes the class, sets it to current_klass, and executes the block.
-      # Then invalidates the klass using #invalidate_klass.
-      def run_with(*includes, &block)
-        defined_klass.instance_exec do
-          includes.each do |m|
-            include m
-          end
-        end
-
+      # This defines the klass for us so we don't have to bother about it later.
+      # Or, in #run_with, it'll create the klass for us.  A block is optional.
+      def define_klass(&block)
         @current_klass = defined_klass.new
-        @current_klass.instance_exec(&block)
+        @current_klass.instance_exec(&block) if block_given?
+      end
+
+      # Grabs the defiend class from #defined_klass.  It then instantizes the 
+      # class, sets it to current_klass, and executes the block. Then 
+      # invalidates the klass using #invalidate_klass.
+      def run_with(&block)
+        define_klass(&block)
         invalidate_klass
       end
 
       alias :run :run_with
 
-      # Runs with the currently running class.
-      def run_with_current(*args, &block)
-        return unless current_klass
+      # Runs with the currently running class.  Raises a NoContextError if the
+      # current class doesn't exist.
+      def run_with_current!(*args, &block)
+        raise NoContextError, "No defined class!" unless current_klass
 
         current_klass.instance_exec(*args, &block)
+      end
+
+      def run_with_current(*args, &block)
+        begin
+          run_with_current!(*args, &block)
+        rescue NoContextError
+        end
       end
 
       # Grabs the defined class.  If it doesn't exist, it creates it using
@@ -65,6 +73,8 @@ module Delog
       # or removed method.  Therefore, when defining methods on the fly inside
       # of the context, you shouldn't rely on that method always being there
       # across contexts.
+      #
+      #
       def invalidate_klass
         @defined_klass = nil
         @current_klass = nil
@@ -90,14 +100,36 @@ module Delog
           end
         end
 
-        @methods_available.each_pair do |k, v|
-          klass.send(:define_method, k) do |*args, &b|
-            v.__send__(k, *args, &b)
+        @old_methods = []
+        define_methods(klass)
+
+        klass
+      end
+
+      # Define the methods on the class +klass+.  First removes the previously
+      # defined methods, then defines the new methods.
+      def define_methods(klass)
+        @old_methods.each do |m|
+          klass.send(:remove_method, m)
+        end
+        @old_methods = []
+
+        @methods_available.each_pair do |method, receiver|
+          unless receiver.respond_to?(method)
+            raise NameError,
+              "undefined method `#{method}' for #{receiver.inspect}"
           end
+
+          klass.send(:define_method, method) do |*args, &b|
+            receiver.__send__(method, *args, &b)
+          end
+          @old_methods << method
         end
 
         klass
       end
     end
+
+    class NoContextError < StandardError; end
   end
 end

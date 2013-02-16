@@ -3,7 +3,7 @@ require 'test_parser'
 describe Delog::Line do
   
   before :each do
-    @lines = Delog::Log.new("spec/test.log").to_a    
+    @lines = Delog::Log.new("spec/test.log", :parser => TestParser).to_a    
   end
 
   # Notice how the second line is dated one second earlier than the first line.

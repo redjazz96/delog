@@ -1,7 +1,7 @@
 describe Delog::Log do
     
   before :each do
-    @log = Delog::Log.new("spec/test.log")
+    @log = Delog::Log.new("spec/test.log", :parser => TestParser)
   end
 
   it "should load the file" do
