@@ -95,7 +95,7 @@ module Delog
           end
         end
       end
-      
+
     end
   end
 end

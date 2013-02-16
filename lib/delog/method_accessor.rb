@@ -1,11 +1,11 @@
 module Delog
 
   # Allows access to a Hash through method calls.  In any method that checks the
-  # keys using more than one format, strings are always prioritized over 
+  # keys using more than one format, strings are always prioritized over
   # symbols.  This is because creating an unused symbol is expensive.
   class MethodAccessor
     extend Forwardable
-    
+
     # Initialize the method.
     def initialize(hash = {})
       @hash = hash || {}
@@ -50,7 +50,7 @@ module Delog
     # Checks the keys to see if they match the given key.  Checks different
     # formats of the key to see if it contains it.
     def has_key?(key)
-      has_exact_key?(key) or has_exact_key?(key.to_s) or 
+      has_exact_key?(key) or has_exact_key?(key.to_s) or
         has_exact_key?(key.intern)
     end
 

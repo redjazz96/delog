@@ -50,21 +50,6 @@ module Delog
 
     private
 
-    # Handles the match of a line; +match_data+ should be a MethodAccessor, and
-    # +pairs+ should be a hash.  If the hash has a key :stop, and the value is
-    # trueish, it'll call #stop.  Otherwise, it'll set the key as the value,
-    # first calling #format on the value.
-    def handle_match(match_data, pairs, block = nil)
-      if block
-        context.run_with_current match_data, &block
-      else
-        pairs.each do |k, v|
-          next stop if k == :stop and v
-          set k, format(v, match_data)
-        end
-      end
-    end
-
     # Returns +value+ unless it's a DataAccessor.  If it is, though, it
     # returns the value for the data (or nil, if it doesn't exist).
     def format(value, match)
@@ -123,37 +108,6 @@ module Delog
     # Adds some local methods to the context methods.
     def context_methods
       super + [:context]
-    end
-
-    # This normalizes the #on variables.  It'll return a hash, with the keys:
-    # <tt>:match</tt> :: this is an array; the first element is the actual
-    #   matching element, the second element is what it's matched to.
-    # <tt>:data</tt>  :: this is a hash that contains data for handle_match.
-    #   It can be empty.
-    # <tt>:block</tt> :: this is the block that should be called for #on.  It
-    #   may or may not exist.
-    def normalize_params(match, data, block)
-      rvalue = { :match => nil, :data => {}, :block => block }
-
-      if data.is_a? Hash
-        rvalue[:match] = [match, @line]
-        rvalue[:data] = data
-      elsif data.is_a? Symbol and not block_given?
-        rvalue[:block] = context.current_klass.method(data)
-      end
-
-      unless rvalue[:match]
-        # we're assuming that data is nil.
-        if match.is_a? Hash
-          rvalue[:match] = [match.keys[0], match.values[0]]
-          match.delete match.keys[0]
-          rvalue[:data] = match
-        else
-          rvalue[:match] = [ match, @line ]
-        end
-      end
-
-      rvalue
     end
 
     # This is used to represent a matchdata value.  This is mainly used for the

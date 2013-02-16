@@ -40,7 +40,7 @@ module Delog
           @addins ||= []
         end
       end
-      
+
       module InstanceMethods
         # The data taken out of the line.  This is a Hash.
         attr_reader :data
@@ -62,11 +62,11 @@ module Delog
           self.class.get_whitelist
         end
 
-        # Can accept a Hash or a regular expression.  If it's a regular 
-        # expression, it matches to the line (and if it does match, it yields).  
-        # If it's a hash, it'll match the first key-value pair; if they match, 
-        # it'll yield, or if no block is given, #set the reset of the key-value 
-        # pairs of the hash.  If `stop` is the key and `true` is the value, it 
+        # Can accept a Hash or a regular expression.  If it's a regular
+        # expression, it matches to the line (and if it does match, it yields).
+        # If it's a hash, it'll match the first key-value pair; if they match,
+        # it'll yield, or if no block is given, #set the reset of the key-value
+        # pairs of the hash.  If `stop` is the key and `true` is the value, it
         # calls #stop.
         # If the method is given a regular expression/+{ /regexp/ => match_to }+
         # and a symbol, it'll call the method corresponding to that symbol with
@@ -101,7 +101,7 @@ module Delog
           data[name]
         end
 
-        # Removes a value from the data.  A convience method for 
+        # Removes a value from the data.  A convience method for
         # <tt>data.delete(name)</tt>.
         def del(name)
           data.delete(name)
@@ -125,15 +125,15 @@ module Delog
           @line
         end
 
-        # Tell #on that we want the value from the match to be replaced here.  
+        # Tell #on that we want the value from the match to be replaced here.
         # Give it the #d!
         def d(name)
           DataAccessor.new(name)
         end
 
-        # An easier way to say +get(:key)+ or +set(:key, :value)+ is this; 
-        # instead, they would be +key+ and +key :value+ respectively.  The 
-        # latter is the case because an equal sign would denote that +key+ is a 
+        # An easier way to say +get(:key)+ or +set(:key, :value)+ is this;
+        # instead, they would be +key+ and +key :value+ respectively.  The
+        # latter is the case because an equal sign would denote that +key+ is a
         # local variable.
         def method_missing(method, *args)
           return super if args.length > 1 or block_given?
@@ -152,9 +152,9 @@ module Delog
 
         private
 
-        # Handles the match of a line; +match_data+ should be a MethodAccessor, 
-        # and +pairs+ should be a hash.  If the hash has a key :stop, and the 
-        # value is trueish, it'll call #stop.  Otherwise, it'll set the key as 
+        # Handles the match of a line; +match_data+ should be a MethodAccessor,
+        # and +pairs+ should be a hash.  If the hash has a key :stop, and the
+        # value is trueish, it'll call #stop.  Otherwise, it'll set the key as
         # the value, first calling #format on the value.
         def handle_match(match_data, pairs, block = nil)
           if block
@@ -175,13 +175,13 @@ module Delog
           return match.get value.name
         end
 
-        # This normalizes the #on variables.  It'll return a hash, with the 
+        # This normalizes the #on variables.  It'll return a hash, with the
         # keys:
         # <tt>:match</tt> :: this is an array; the first element is the actual
         #   matching element, the second element is what it's matched to.
         # <tt>:data</tt>  :: this is a hash that contains data for handle_match.
         #   It can be empty.
-        # <tt>:block</tt> :: this is the block that should be called for #on.  
+        # <tt>:block</tt> :: this is the block that should be called for #on.
         #   It may or may not exist.
         def normalize_params(match, data, block)
           rvalue = { :match => nil, :data => {}, :block => block }
@@ -214,7 +214,7 @@ module Delog
           ]
         end
       end
-      
+
       # Extend and include the receiver.
       def self.included(receiver)
         receiver.extend         ClassMethods

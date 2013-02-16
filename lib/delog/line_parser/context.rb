@@ -38,8 +38,8 @@ module Delog
         @current_klass.instance_exec(&block) if block_given?
       end
 
-      # Grabs the defiend class from #defined_klass.  It then instantizes the 
-      # class, sets it to current_klass, and executes the block. Then 
+      # Grabs the defiend class from #defined_klass.  It then instantizes the
+      # class, sets it to current_klass, and executes the block. Then
       # invalidates the klass using #invalidate_klass.
       def run_with(&block)
         define_klass(&block)

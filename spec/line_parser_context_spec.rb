@@ -1,5 +1,5 @@
 describe Delog::LineParser::Context do
-  before :each do 
+  before :each do
     @context = described_class.new
     @method_object = Object.new
   end

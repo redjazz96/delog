@@ -27,13 +27,13 @@ class TestParser < Delog::LineParser
     end
 
     # Logged comments, mainly used by the reply system.
-    on %r{\A\s*\*(?<comment_data>.*)\z} => get(:log), :type => :comment, 
+    on %r{\A\s*\*(?<comment_data>.*)\z} => get(:log), :type => :comment,
       :cdata => d(:comment_data), :stop => true
 
 
     # When a cvar changes, it's logged to the file; this pulls that out.
-    on %r{\Aserver_cvar\: "(?<cvar>.*)" "(?<value>.*)"\z} => get(:log), 
-      :type => :cvar_set, :cvar => d(:cvar), :value => d(:value), 
+    on %r{\Aserver_cvar\: "(?<cvar>.*)" "(?<value>.*)"\z} => get(:log),
+      :type => :cvar_set, :cvar => d(:cvar), :value => d(:value),
       :stop => true
 
     on %r{\AB (?<foo>.*?)\n}, :test_method

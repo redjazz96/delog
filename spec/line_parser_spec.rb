@@ -24,9 +24,9 @@ describe Delog::LineParser do
   it "should handle shorthand" do
     line = "L 02/09/2013 - 01:19:03: server_cvar: \"sv_pure\" \"0\"\n"
     parser = @parser_class.new(line).parse!
-    
-    { :type => :cvar_set, 
-      :cvar => "sv_pure", 
+
+    { :type => :cvar_set,
+      :cvar => "sv_pure",
       :value => "0" }.each_pair do |k, v|
       parser.get(k).should == v
     end
