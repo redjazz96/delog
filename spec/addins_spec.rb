@@ -27,8 +27,4 @@ end
 
 class AddinTestParser < Delog::LineParser
   addin TestAddin
-
-  build do
-    puts "BUILD CALLED"
-  end
 end
